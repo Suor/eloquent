@@ -2,25 +2,16 @@
 from funcy import *
 
 
-class NoMatch(Exception):
-    pass
-
-
 class Pattern(list):
     def match(self, words):
         # if len(words) != len(self):
         #     return False
-        try:
-            return join(m.match(word) for m, word in zip(self, words))
-        except NoMatch:
-            return None
-        # matched = takewhile(bool, matches)
-        # if len(matched) < len(self):
-        #     return NoMatch
-        # else:
-        #     return
-
-        # return all(m.match(word) for m, word in zip(self, words))
+        matches = (m.match(word) for m, word in zip(self, words))
+        matched = list(takewhile(notnone, matches))
+        print self
+        print matched, len(matched), len(self), join(matched)
+        if len(matched) == len(self):
+            return join(matched)
 
     def __add__(self, other):
         if isinstance(other, Matcher):
@@ -53,8 +44,6 @@ class Keyword(Matcher):
     def match(self, word, context=None):
         if word in self.variants:
             return {self.name: word}
-        else:
-            raise NoMatch
 
 
 class Mapping(Matcher):
@@ -65,8 +54,6 @@ class Mapping(Matcher):
     def match(self, word, context=None):
         if word in self.mapping:
             return {self.name: self.mapping[word]}
-        else:
-            raise NoMatch
 
 
 patterns = [
