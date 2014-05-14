@@ -41,8 +41,8 @@ def test_keyword_case():
 #     assert parse(u'тайота') == {'brand': 'Toyota'}
 #     assert parse(u'таёта') == {'brand': 'Toyota'}
 
-# def test_aliases():
-#     assert parse(u'бумер') == {'brand': 'BMW'}
+def test_aliases():
+    assert parse(u'бумер') == {'brand': 'BMW'}
 #     assert False # TODO: add more examples
 
 

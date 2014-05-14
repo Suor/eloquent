@@ -81,12 +81,13 @@ class Mapping(Matcher):
 def CSMapping(name, mapping):
     return Mapping(name, mapping, transform=identity)
 
-def Keyword(name, words, transform=lambda s: s.lower()):
+def Keyword(name, words, aliases={}, transform=lambda s: s.lower()):
     mapping = {w: w for w in words}
+    mapping.update(aliases)
     return Mapping(name, mapping, transform=transform)
 
-def CSKeyword(name, words):
-    return Keyword(name, words, transform=identity)
+def CSKeyword(name, words, aliases={}):
+    return Keyword(name, words, aliases=aliases, transform=identity)
 
 
 class Int(Matcher):
@@ -102,11 +103,12 @@ class Int(Matcher):
 
 
 brands = ['Toyota', 'BMW']
+brand_aliases = {u'бумер': 'BMW'}
 models = {'Corolla': 'Toyota Corolla'}
 
 patterns = [
-    Keyword('brand', brands) + Mapping('model', models),
-    Keyword('brand', brands).to_p(),
+    Keyword('brand', brands, aliases=brand_aliases) + Mapping('model', models),
+    Keyword('brand', brands, aliases=brand_aliases).to_p(),
     Mapping('model', models).to_p(),
     Regex(u'^(с|от)$') + Int('year__ge', 1900, 2014) + Regex(u'^г(ода?)?$'),
     Regex(u'^(по|до)$') + Int('year__le', 1900, 2014) + Regex(u'^г(ода?)?$'),
