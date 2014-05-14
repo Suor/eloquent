@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-# Names:
-#   - future filter/search
-#   - human query
-#   - natural filter/query
-#   - eloquent
-# Aimed to enable natural language in filter/search forms.
 
 # brand,
 # model,
@@ -13,7 +7,7 @@
 from eloquent import parse
 
 def test_keyword():
-    assert parse(u'Hello') is None
+    assert parse(u'Hello') == {}
     assert parse(u'Toyota') == {'brand': 'Toyota'}
     assert parse(u'Toyota Corolla') == {'brand': 'Toyota', 'model': 'Toyota Corolla'}
 
@@ -49,18 +43,19 @@ def test_aliases():
 def test_int_keyword():
     assert parse(u'2009 года') == {'year': 2009}
     assert parse(u'2010 г') == {'year': 2010}
+    assert parse(u'2050 г') == {}
 
 def test_orphan_int():
     assert parse(u'2009') == {'year': 2009}
 
-# def test_range():
-#     assert parse(u'с 2009 по 2012 год') == {'year__range': (2009, 2012)}
-#     assert parse(u'от 2009 до 2012 года') == {'year__range': (2009, 2012)}
-    # assert parse(u'от 2009 до 2012 года') == {'year__range': (2009, 2012)}
+def test_range():
+    assert parse(u'с 2009 по 2012 год') == {'year__ge': 2009, 'year__le': 2012}
+    assert parse(u'от 2009 до 2012 года') == {'year__ge': 2009, 'year__le': 2012}
+    assert parse(u'от 2009 до 2012 года') == {'year__ge': 2009, 'year__le': 2012}
 
-# def test_orphan_range():
-#     assert parse(u'от 2009 до 2012') == {'year__range': (2009, 2012)}
-#     assert parse(u'2009-2012') == {'year__range': (2009, 2012)}
+def test_orphan_range():
+    assert parse(u'от 2009 до 2012') == {'year__ge': 2009, 'year__le': 2012}
+    # assert parse(u'2009-2012') == {'year__ge': 2009, 'year__le': 2012}
 
 # def test_abbrev_range():
 #     assert parse(u'2009-12') == {'year__range': (2009, 2012)}

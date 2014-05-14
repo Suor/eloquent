@@ -5,11 +5,12 @@ from funcy import *
 
 class Pattern(list):
     def match(self, words):
-        # if len(words) != len(self):
-        #     return False
+        if len(words) < len(self):
+            return False
+
         matches = (m.match(word) for m, word in zip(self, words))
         matched = list(takewhile(notnone, matches))
-        print self
+        print self, words
         print matched, len(matched), len(self), join(matched)
         if len(matched) == len(self):
             return join(matched)
@@ -111,19 +112,34 @@ patterns = [
     Keyword('brand', brands, aliases=brand_aliases).to_p(),
     Mapping('model', models).to_p(),
     Regex(u'^(с|от)$') + Int('year__ge', 1900, 2014) + Regex(u'^г(ода?)?$'),
+    Regex(u'^(с|от)$') + Int('year__ge', 1900, 2014),
     Regex(u'^(по|до)$') + Int('year__le', 1900, 2014) + Regex(u'^г(ода?)?$'),
+    Regex(u'^(по|до)$') + Int('year__le', 1900, 2014),
     Int('year', 1900, 2014) + Regex(u'^г(ода?)?$'),
     Int('year', 1900, 2014).to_p(),
 ]
 
 import traceback, sys
 
+
+@print_calls
 def parse(s):
     # print >> sys.stderr, '=' * 100
     # traceback.print_stack()
     words = s.split()
-    print 'words', words
-    return some(p.match(words) for p in patterns)
+    # print 'words', words
+    result = {}
+    while words:
+        for p in patterns:
+            m = p.match(words)
+            if m:
+                result.update(m)
+                words = words[len(p):]
+                break
+        else:
+            break
+
+    return result
 
 
 # pattern matching in python syntax
