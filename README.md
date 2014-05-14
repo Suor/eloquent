@@ -1,4 +1,5 @@
-eloquent
+Eloquent
 ========
 
-Eloquent selection/filter interface
+Aimed to enable natural language in filter/search forms.
+
