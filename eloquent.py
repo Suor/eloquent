@@ -67,45 +67,26 @@ class Regex(Matcher):
             return {}
 
 
-class Keyword(Matcher):
-    def __init__(self, name, variants):
-        self.name = name
-        self.variants = set(variants)
-
-    def match(self, word, context=None):
-        if word in self.variants:
-            return {self.name: word}
-
-class CIKeyword(Matcher):
-    def __init__(self, name, variants):
-        self.name = name
-        self.mapping = {v.lower(): v for v in variants}
-
-    def match(self, word, context=None):
-        key = word.lower()
-        if key in self.mapping:
-            return {self.name: self.mapping[key]}
-
-
 class Mapping(Matcher):
-    def __init__(self, name, mapping):
+    def __init__(self, name, mapping, transform=lambda s: s.lower()):
         self.name = name
-        self.mapping = mapping
+        self.mapping = {transform(k): v for k, v in mapping.items()}
+        self.transform = transform
 
     def match(self, word, context=None):
-        if word in self.mapping:
-            return {self.name: self.mapping[word]}
-
-
-class CIMapping(Matcher):
-    def __init__(self, name, mapping):
-        self.name = name
-        self.mapping = {k.lower(): v for k, v in mapping.items()}
-
-    def match(self, word, context=None):
-        key = word.lower()
+        key = self.transform(word)
         if key in self.mapping:
             return {self.name: self.mapping[key]}
+
+def CSMapping(name, mapping):
+    return Mapping(name, mapping, transform=identity)
+
+def Keyword(name, words, transform=lambda s: s.lower()):
+    mapping = {w: w for w in words}
+    return Mapping(name, mapping, transform=transform)
+
+def CSKeyword(name, words):
+    return Keyword(name, words, transform=identity)
 
 
 class Int(Matcher):
@@ -124,9 +105,9 @@ brands = ['Toyota', 'BMW']
 models = {'Corolla': 'Toyota Corolla'}
 
 patterns = [
-    CIKeyword('brand', brands) + CIMapping('model', models),
-    CIKeyword('brand', brands).to_p(),
-    CIMapping('model', models).to_p(),
+    Keyword('brand', brands) + Mapping('model', models),
+    Keyword('brand', brands).to_p(),
+    Mapping('model', models).to_p(),
     Regex(u'^(с|от)$') + Int('year__ge', 1900, 2014) + Regex(u'^г(ода?)?$'),
     Regex(u'^(по|до)$') + Int('year__le', 1900, 2014) + Regex(u'^г(ода?)?$'),
     Int('year', 1900, 2014) + Regex(u'^г(ода?)?$'),
