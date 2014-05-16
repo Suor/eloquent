@@ -60,6 +60,9 @@ class Regex(Matcher):
     def __init__(self, regex):
         self.regex = re.compile(regex)
 
+    def __repr__(self):
+        return 'Regex(%r)' % self.regex.pattern
+
     def match(self, word):
         if self.regex.search(word):
             return {}
