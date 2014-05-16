@@ -103,20 +103,28 @@ class Int(Matcher):
             return {self.name: value}
 
 
+# Domain data
 brands = ['Toyota', 'BMW']
 brand_aliases = {u'бумер': 'BMW'}
 models = {'Corolla': 'Toyota Corolla'}
 
+# Construct matchers
+brand = Keyword('brand', brands, aliases=brand_aliases)
+model = Mapping('model', models)
+year = Int('year', 1900, 2014)
+year_ge = Int('year__ge', 1900, 2014)
+year_le = Int('year__le', 1900, 2014)
+
 patterns = [
-    Keyword('brand', brands, aliases=brand_aliases) + Mapping('model', models),
-    Keyword('brand', brands, aliases=brand_aliases).to_p(),
-    Mapping('model', models).to_p(),
-    Regex(u'^(с|от)$') + Int('year__ge', 1900, 2014) + Regex(u'^г(ода?)?$'),
-    Regex(u'^(с|от)$') + Int('year__ge', 1900, 2014),
-    Regex(u'^(по|до)$') + Int('year__le', 1900, 2014) + Regex(u'^г(ода?)?$'),
-    Regex(u'^(по|до)$') + Int('year__le', 1900, 2014),
-    Int('year', 1900, 2014) + Regex(u'^г(ода?)?$'),
-    Int('year', 1900, 2014).to_p(),
+    brand + model,
+    brand.to_p(),
+    model.to_p(),
+    u'^(с|от)$' + year_ge + u'^г(ода?)?$',
+    u'^(с|от)$' + year_ge,
+    u'^(по|до)$' + year_le + u'^г(ода?)?$',
+    u'^(по|до)$' + year_le,
+    year + u'^г(ода?)?$',
+    year.to_p(),
 ]
 
 import traceback, sys
