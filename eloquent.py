@@ -15,15 +15,20 @@ class Pattern(list):
         if len(matched) == len(self):
             return join(matched)
 
-    def __add__(self, other):
-        if isinstance(other, Matcher):
-            p = Pattern(self)
-            p.append(other)
-            return p
-        elif isinstance(other, (str, unicode)):
-            return self + Const(other)
+    @staticmethod
+    def guess_matcher(value):
+        if isinstance(value, Matcher):
+            return value
+        elif isinstance(value, (str, unicode)):
+            return Regex(value)
         else:
-            return NotImplemented
+            raise NotImplementedError
+
+    def __add__(self, other):
+        return Pattern(self[:] + [self.guess_matcher(other)])
+
+    def __radd__(self, other):
+        return Pattern([self.guess_matcher(other)] + self[:])
 
 
 class Matcher(object):
@@ -31,18 +36,10 @@ class Matcher(object):
         raise NotImplementedError
 
     def __add__(self, other):
-        if isinstance(other, Matcher):
-            return Pattern([self, other])
-        elif isinstance(other, basestring):
-            return Pattern([self, Const(other)])
-        else:
-            return NotImplemented
+        return Pattern([self]) + other
 
     def __radd__(self, other):
-        if isinstance(other, basestring):
-            return Pattern([Const(other), self])
-        else:
-            return NotImplemented
+        return other + Pattern([self])
 
     def to_p(self):
         return Pattern([self])
