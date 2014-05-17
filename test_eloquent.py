@@ -25,8 +25,12 @@ def test_keyword_case():
 #     assert parse(u'тойота королла') == {'brand': 'Toyota', 'model': 'Toyota Corolla'}
 #     assert parse(u'королла') == {'model': 'Toyota Corolla'}
 
-# def test_broken_keyword():
-#     assert parse(u'corola') == {'model': 'Toyota Corolla'} # Mind single "l"
+def test_broken_keyword():
+    assert parse(u'toyot') == {'brand': 'Toyota'}
+    assert parse(u'Corola') == {'model': 'Toyota Corolla'} # Mind single "l"
+
+def test_very_broken_keyword():
+    assert parse(u'toiot') == {'brand': 'Toyota'}
 
 # def test_broken_translit_keyword():
 #     assert parse(u'корола') == {'model': 'Toyota Corolla'} # Mind single "л"

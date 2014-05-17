@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from collections import defaultdict, Counter
 from funcy import *
 
 
@@ -91,6 +92,23 @@ def CSKeyword(name, words, aliases={}):
     return Keyword(name, words, aliases=aliases, transform=identity)
 
 
+word_triples = partial(partition, 3, 1)
+
+class Misspelled(Matcher):
+    def __init__(self, name, mapping, transform=lambda s: s.lower()):
+        self.name = name
+        self.transform = transform
+        self.mapping = {transform(k): v for k, v in mapping.items()}
+        self.triples = group_by_keys(word_triples, self.mapping)
+
+    def match(self, word):
+        triples = word_triples(self.transform(word))
+        counter = Counter(cat(keep(self.triples, triples)))
+        top = counter.most_common(1)
+        if top:
+            return {self.name: self.mapping[top[0][0]]}
+
+
 class Int(Matcher):
     def __init__(self, name, lower=None, upper=None):
         self.name = name
@@ -107,6 +125,8 @@ class Int(Matcher):
 brands = ['Toyota', 'BMW']
 brand_aliases = {u'бумер': 'BMW'}
 models = {'Corolla': 'Toyota Corolla'}
+
+brand_dict = merge({b: b for b in brands}, brand_aliases)
 
 # Construct matchers
 brand = Keyword('brand', brands, aliases=brand_aliases)
@@ -125,6 +145,8 @@ patterns = [
     u'^(по|до)$' + year_le,
     year + u'^г(ода?)?$',
     year.to_p(),
+    Misspelled('brand', brand_dict).to_p(),
+    Misspelled('model', models).to_p(),
 ]
 
 import traceback, sys
