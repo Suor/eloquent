@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import re
 from collections import defaultdict, Counter
+from itertools import product
+
 from funcy import *
 
 
@@ -112,6 +114,40 @@ class Misspelled(FuzzyKeywords):
     """Spell checker based on triplets"""
     extract_features = partial(partition, 3, 1)
 
+class Translit(FuzzyKeywords):
+    en_to_ru = {
+        'a': (u'а',),
+        'b': (u'б',),
+        'c': (u'с', u'ц', u'к'),
+        'd': (u'д',),
+        'e': (u'е',),
+        'f': (u'ф',),
+        'g': (u'г', u'ж'),
+        'h': (u'х',),
+        'i': (u'и', u'й'),
+        'k': (u'к',),
+        'l': (u'л',),
+        'm': (u'м',),
+        'n': (u'н',),
+        'o': (u'о',),
+        'p': (u'п',),
+        'q': (u'к',),
+        'r': (u'р',),
+        's': (u'с',),
+        't': (u'т',),
+        'u': (u'у', u'ю'),
+        'v': (u'в',),
+        'w': (u'в', u'у'),
+        'x': (u'кс', u'х',),
+        'y': (u'й',),
+        'z': (u'з',),
+    }
+
+    @classmethod
+    def extract_features(cls, word):
+        letter_variants = (cls.en_to_ru.get(c, c) for c in word)
+        return map(u''.join, product(*letter_variants))
+
 
 class Int(Matcher):
     def __init__(self, name, lower=None, upper=None):
@@ -151,6 +187,8 @@ patterns = [
     year.to_p(),
     Misspelled('brand', brand_dict).to_p(),
     Misspelled('model', models).to_p(),
+    Translit('brand', brand_dict).to_p(),
+    Translit('model', models).to_p(),
 ]
 
 import traceback, sys
