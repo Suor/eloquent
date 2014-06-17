@@ -92,21 +92,25 @@ def CSKeyword(name, words, aliases={}):
     return Keyword(name, words, aliases=aliases, transform=identity)
 
 
-word_triples = partial(partition, 3, 1)
+class FuzzyKeywords(Matcher):
+    extract_features = raiser(NotImplementedError)
 
-class Misspelled(Matcher):
     def __init__(self, name, mapping, transform=lambda s: s.lower()):
         self.name = name
         self.transform = transform
         self.mapping = {transform(k): v for k, v in mapping.items()}
-        self.triples = group_by_keys(word_triples, self.mapping)
+        self.words_by_feature = group_by_keys(self.extract_features, self.mapping)
 
     def match(self, word):
-        triples = word_triples(self.transform(word))
-        counter = Counter(cat(keep(self.triples, triples)))
+        features = self.extract_features(self.transform(word))
+        counter = Counter(icat(ikeep(self.words_by_feature.get, features)))
         top = counter.most_common(1)
         if top:
             return {self.name: self.mapping[top[0][0]]}
+
+class Misspelled(FuzzyKeywords):
+    """Spell checker based on triplets"""
+    extract_features = partial(partition, 3, 1)
 
 
 class Int(Matcher):
